@@ -14,10 +14,10 @@ def draw():
 
 def on_key_down(key):
     if key == keys.W:
-        player.move(0, -1)
+        player.move(0, -1, level)
     elif key == keys.S:
-        player.move(0, 1)
+        player.move(0, 1, level)
     elif key == keys.A:
-        player.move(-1, 0)
+        player.move(-1, 0, level)
     elif key == keys.D:
-        player.move(1, 0)
+        player.move(1, 0, level)

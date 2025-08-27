@@ -27,7 +27,11 @@ class Player:
             color="yellow"
         )
 
-    def move(self, dx, dy):
-        """Atualiza posição do jogador"""
-        self.x += dx
-        self.y += dy
+    def move(self, dx, dy, level):
+        """Move o jogador apenas se o destino for andável"""
+        new_x = self.x + dx
+        new_y = self.y + dy
+
+        if level.is_walkable(new_x, new_y):
+            self.x = new_x
+            self.y = new_y
