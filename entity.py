@@ -14,6 +14,20 @@ class Entity:
             fontsize=tilesize
         )
 
-class Player(Entity):
-    def __init__(self, x, y):
-        super().__init__(x, y, "@", (255, 215, 0))
+class Player:
+    def __init__(self, x, y, char="@"):
+        self.x = x
+        self.y = y
+        self.char = char
+
+    def draw(self, screen):
+        screen.draw.text(
+            self.char,
+            (self.x * 32 + 10, self.y * 32 + 10),
+            color="yellow"
+        )
+
+    def move(self, dx, dy):
+        """Atualiza posição do jogador"""
+        self.x += dx
+        self.y += dy

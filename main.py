@@ -5,10 +5,19 @@ import ui
 
 level = Level(const.GRID_W, const.GRID_H)
 player = Player(const.GRID_W // 2, const.GRID_H // 2)
-log_text = "Pressione WASD para mover (em breve)."
 
 def draw():
     screen.clear()
     level.draw(screen)
-    player.draw(screen, const.TILESIZE)
-    ui.draw_panel(screen, log_text)
+    player.draw(screen)
+    ui.draw_message(screen, "Use WASD to move.")
+
+def on_key_down(key):
+    if key == keys.W:
+        player.move(0, -1)
+    elif key == keys.S:
+        player.move(0, 1)
+    elif key == keys.A:
+        player.move(-1, 0)
+    elif key == keys.D:
+        player.move(1, 0)
