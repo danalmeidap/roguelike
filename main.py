@@ -46,12 +46,21 @@ def on_key_down(key):
     if game_state == STATE_PLAYING:
         if key == keys.W:
             player.move(0, -1, level)
+            move_enemies()
+            check_for_collisions()
         elif key == keys.S:
             player.move(0, 1, level)
+            move_enemies()
+            check_for_collisions()
         elif key == keys.A:
             player.move(-1, 0, level)
+            move_enemies()
+            check_for_collisions()
         elif key == keys.D:
             player.move(1, 0, level)
+            move_enemies()
+            check_for_collisions()
+
 
 def on_mouse_down(pos):
     global game_state, level, player, enemies
@@ -85,4 +94,21 @@ def start_game():
         new_enemy = Enemy(pos[0], pos[1])
         enemies.append(new_enemy)
 
-# Remova a chamada direta a start_game() no final do arquivo
+def move_enemies():
+    for enemy in enemies:
+        dx = player.x - enemy.x
+        dy = player.y - enemy.y
+        
+
+        if abs(dx) > abs(dy):
+            enemy.move(1 if dx > 0 else -1, 0, level)
+        else:
+            enemy.move(0, 1 if dy > 0 else -1, level)
+
+
+def check_for_collisions():
+    global game_state
+    for enemy in enemies:
+        if player.x == enemy.x and player.y == enemy.y:
+            game_state = STATE_GAME_OVER
+            print("Game Over!")
