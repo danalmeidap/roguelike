@@ -6,8 +6,7 @@ class Level:
     def __init__(self, w, h):
         self.w = w
         self.h = h
-        # Agora a matriz é h x w (linhas x colunas)
-        self.tiles = [[0 for _ in range(w)] for _ in range(h)]
+        self.map = [[0 for _ in range(w)] for _ in range(h)]
 
         for y in range(self.h):
             for x in range(self.w):

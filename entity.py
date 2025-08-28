@@ -45,6 +45,12 @@ class Enemy(Entity):
             fontsize=const.TILESIZE
         )
 
+    def move(self, dx, dy, level):
+        if level.tiles[self.y + dy][self.x + dx] != '#':
+            self.x += dx
+            self.y += dy
+
+
 class Item(Entity):
     def __init__(self, x, y, item_type):
         super().__init__(x, y, "*")
