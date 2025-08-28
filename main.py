@@ -8,20 +8,24 @@ from level import Level
 from entity import Player, Enemy
 import random
 
-# Variáveis de controle
+
 STATE_MENU = 0
 STATE_PLAYING = 1
 STATE_GAME_OVER = 2
+STATE_VICTORY = 3
 
-# Variável de controle do estado
-game_state = STATE_MENU  # Ajuste o estado inicial para STATE_MENU
+
+game_state = STATE_MENU 
 
 audio_on = True
 
-# Variáveis para o jogo
+
 level = None
 player = None
 enemies = []
+items = [] 
+
+
 
 def draw():
     screen.clear()
@@ -34,16 +38,20 @@ def draw():
         
         for enemy in enemies:
             enemy.draw(screen)
+        
+        for item in items:
+            item.draw(screen)
             
-        ui.draw_stats(screen, player) 
+        ui.draw_stats(screen, player)
         ui.draw_message(screen, "Use WASD to move.")
+        
 
 def update():
     pass
 
 
 def on_key_down(key):
-    global game_state, enemies
+    global game_state, enemies, items
 
     if game_state == STATE_PLAYING:
         dx, dy = 0, 0
@@ -68,35 +76,48 @@ def on_key_down(key):
 
             if enemy_to_attack:
                 enemy_to_attack.hp -= 1
-                print(f"Você atacou um inimigo! HP restante: {enemy_to_attack.hp}")
-
                 if enemy_to_attack.hp <= 0:
+                    new_item = Item(enemy_to_attack.x, enemy_to_attack.y, "potion")
+                    items.append(new_item)
                     enemies.remove(enemy_to_attack)
                     print("Inimigo derrotado!")
+
+                    if not enemies:
+                        game_state = STATE_VICTORY
+                        print("Você venceu!")
+                
             else:
                 player.move(dx, dy, level)
-
             
+            check_for_item_pickup() 
             move_enemies()
-            
-          
+
             if player.hp <= 0:
                 game_state = STATE_GAME_OVER
-                print("Game Over!")
 
 def on_mouse_down(pos):
     global game_state, level, player, enemies
     
     if game_state == STATE_MENU:
-        start_button_rect = Rect(const.WIDTH / 2 - 100, 200, 200, 50)
-        sound_button_rect = Rect(const.WIDTH / 2 - 100, 270, 200, 50)
-        exit_button_rect = Rect(const.WIDTH / 2 - 100, 340, 200, 50)
-        
+        start_button_rect = Rect(const.WIDTH // 2 - 100, 200, 200, 50)
+        exit_button_rect = Rect(const.WIDTH // 2 - 100, 340, 200, 50)
+
         if start_button_rect.collidepoint(pos):
             start_game()
         
         elif exit_button_rect.collidepoint(pos):
             sys.exit()
+    
+    elif game_state == STATE_GAME_OVER or game_state == STATE_VICTORY:
+        restart_button_rect = Rect(const.WIDTH // 2 - 100, 300, 200, 50)
+        exit_button_rect = Rect(const.WIDTH // 2 - 100, 370, 200, 50)
+
+        if restart_button_rect.collidepoint(pos):
+            start_game()
+        
+        elif exit_button_rect.collidepoint(pos):
+            sys.exit()
+
 
 def start_game():
     global game_state, level, player, enemies
@@ -135,6 +156,21 @@ def move_enemies():
             print(f"Você foi atacado! Seu HP atual: {player.hp}")
         else:
             enemy.move(new_x - enemy.x, new_y - enemy.y, level)
+
+
+def check_for_item_pickup():
+    global player, items
+    item_to_remove = None
+    for item in items:
+        if player.x == item.x and player.y == item.y:
+            item_to_remove = item
+            if item.item_type == "potion":
+                player.hp += 2
+                print(f"Você coletou uma poção! Seu HP agora é: {player.hp}")
+            break
+            
+    if item_to_remove:
+        items.remove(item_to_remove)
 
 
 def check_for_collisions():

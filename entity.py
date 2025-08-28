@@ -44,3 +44,11 @@ class Enemy(Entity):
             color="white",
             fontsize=const.TILESIZE
         )
+
+class Item(Entity):
+    def __init__(self, x, y, item_type):
+        super().__init__(x, y, "*")
+        self.item_type = item_type
+        
+    def draw(self, screen):
+        super().draw(screen, "green", const.TILESIZE)
