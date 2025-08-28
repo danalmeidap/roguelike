@@ -1,23 +1,32 @@
-import const
-from pygame import Rect 
-
+import random
+from pygame import Rect
+from const import TILESIZE, GRAY, BLACK, GRID_W, GRID_H
 
 class Level:
     def __init__(self, w, h):
         self.w = w
         self.h = h
-        self.tiles = [[0 for _ in range(h)] for _ in range(w)]
+        # Agora a matriz é h x w (linhas x colunas)
+        self.tiles = [[0 for _ in range(w)] for _ in range(h)]
+
+        for y in range(self.h):
+            for x in range(self.w):
+                if x > 0 and y > 0 and x < self.w - 1 and y < self.h - 1:
+                    if random.random() < 0.3:
+                        # Corrigido para self.tiles[y][x]
+                        self.tiles[y][x] = 1
 
     def draw(self, screen):
-        for x in range(self.w):
-            for y in range(self.h):
-                rect = Rect(x * const.TILESIZE, y * const.TILESIZE,
-                            const.TILESIZE, const.TILESIZE)
-                color = const.GRAY if self.tiles[x][y] == 1 else const.BLACK
+        for y in range(self.h):
+            for x in range(self.w):
+                # Corrigido para self.tiles[y][x]
+                color = GRAY if self.tiles[y][x] == 0 else BLACK
+                rect = Rect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE)
                 screen.draw.filled_rect(rect, color)
-
+    
     def is_walkable(self, x, y):
-        """Retorna True se o tile for andável"""
+        # Acesso correto da matriz
         if x < 0 or x >= self.w or y < 0 or y >= self.h:
             return False
-        return self.tiles[x][y] == 0
+        # Corrigido para self.tiles[y][x]
+        return self.tiles[y][x] == 0
