@@ -35,32 +35,54 @@ def draw():
         for enemy in enemies:
             enemy.draw(screen)
             
+        ui.draw_stats(screen, player) 
         ui.draw_message(screen, "Use WASD to move.")
 
 def update():
     pass
 
-def on_key_down(key):
-    global game_state
-    
-    if game_state == STATE_PLAYING:
-        if key == keys.W:
-            player.move(0, -1, level)
-            move_enemies()
-            check_for_collisions()
-        elif key == keys.S:
-            player.move(0, 1, level)
-            move_enemies()
-            check_for_collisions()
-        elif key == keys.A:
-            player.move(-1, 0, level)
-            move_enemies()
-            check_for_collisions()
-        elif key == keys.D:
-            player.move(1, 0, level)
-            move_enemies()
-            check_for_collisions()
 
+def on_key_down(key):
+    global game_state, enemies
+
+    if game_state == STATE_PLAYING:
+        dx, dy = 0, 0
+        if key == keys.W:
+            dy = -1
+        elif key == keys.S:
+            dy = 1
+        elif key == keys.A:
+            dx = -1
+        elif key == keys.D:
+            dx = 1
+
+        if dx != 0 or dy != 0:
+            target_x = player.x + dx
+            target_y = player.y + dy
+
+            enemy_to_attack = None
+            for enemy in enemies:
+                if enemy.x == target_x and enemy.y == target_y:
+                    enemy_to_attack = enemy
+                    break
+
+            if enemy_to_attack:
+                enemy_to_attack.hp -= 1
+                print(f"Você atacou um inimigo! HP restante: {enemy_to_attack.hp}")
+
+                if enemy_to_attack.hp <= 0:
+                    enemies.remove(enemy_to_attack)
+                    print("Inimigo derrotado!")
+            else:
+                player.move(dx, dy, level)
+
+            
+            move_enemies()
+            
+          
+            if player.hp <= 0:
+                game_state = STATE_GAME_OVER
+                print("Game Over!")
 
 def on_mouse_down(pos):
     global game_state, level, player, enemies
@@ -99,11 +121,20 @@ def move_enemies():
         dx = player.x - enemy.x
         dy = player.y - enemy.y
         
-
+       
         if abs(dx) > abs(dy):
-            enemy.move(1 if dx > 0 else -1, 0, level)
+            new_x = enemy.x + (1 if dx > 0 else -1)
+            new_y = enemy.y
         else:
-            enemy.move(0, 1 if dy > 0 else -1, level)
+            new_x = enemy.x
+            new_y = enemy.y + (1 if dy > 0 else -1)
+
+  
+        if new_x == player.x and new_y == player.y:
+            player.hp -= 1  
+            print(f"Você foi atacado! Seu HP atual: {player.hp}")
+        else:
+            enemy.move(new_x - enemy.x, new_y - enemy.y, level)
 
 
 def check_for_collisions():

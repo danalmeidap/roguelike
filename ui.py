@@ -46,3 +46,7 @@ def draw_message(screen, message):
         (10, 490),
         color="white",
     )
+
+
+def draw_stats(screen, player):
+    screen.draw.text(f"HP: {player.hp}", (10, 10), color="white", fontsize=30)

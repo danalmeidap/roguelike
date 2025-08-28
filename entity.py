@@ -17,6 +17,7 @@ class Entity:
 class Player(Entity):
     def __init__(self, x, y, char="@"):
         super().__init__(x, y, char)
+        self.hp = 10 
 
     def draw(self, screen):
         super().draw(screen, "yellow", const.TILESIZE)
@@ -32,6 +33,7 @@ class Player(Entity):
 class Enemy(Entity):
     def __init__(self, x, y):
         super().__init__(x, y, "E")
+        self.hp = 3  #
 
     def draw(self, screen):
         super().draw(screen, "red", const.TILESIZE)
