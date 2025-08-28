@@ -33,7 +33,14 @@ class Player(Entity):
 class Enemy(Entity):
     def __init__(self, x, y):
         super().__init__(x, y, "E")
-        self.hp = 3  #
+        self.hp = 3
 
     def draw(self, screen):
         super().draw(screen, "red", const.TILESIZE)
+        
+        screen.draw.text(
+            str(self.hp),
+            (self.x * const.TILESIZE + 40, self.y * const.TILESIZE + 10),
+            color="white",
+            fontsize=const.TILESIZE
+        )
