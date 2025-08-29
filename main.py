@@ -46,7 +46,7 @@ def draw():
         
 
         for enemy in enemies:
-            enemy.draw(screen)
+            enemy.draw()
         
 
         for item in items:
@@ -58,17 +58,20 @@ def draw():
         
 
 def update(dt):
-    global game_state, player
+    global game_state, player, enemies
 
     if game_state == STATE_MENU:
-      
         if not music.is_playing('menu.wav'):
-            music.play('menu.wav')
+
+            music.play('menu.wav') 
     
     elif game_state == STATE_PLAYING:
-    
         if not music.is_playing('tema_fase.wav'):
+ 
             music.play('tema_fase.wav')
+            
+        for enemy in enemies:
+            enemy.update_animation(dt)
             
         player.update_animation(dt)
 
