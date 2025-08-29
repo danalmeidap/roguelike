@@ -5,7 +5,7 @@ import const
 import ui
 from pygame import Rect
 from level import Level
-from entity import Player, Enemy
+from entity import Player, Enemy,Item
 import random
 
 
@@ -13,7 +13,8 @@ STATE_MENU = 0
 STATE_PLAYING = 1
 STATE_GAME_OVER = 2
 STATE_VICTORY = 3
-
+ENEMY_MOVE_RATE = 3 
+enemy_move_counter = 0
 
 game_state = STATE_MENU 
 
@@ -53,10 +54,15 @@ def update():
         music.play('menu.wav')
         is_music_playing = True
 
-def on_key_down(key):
-    global game_state, enemies, items
 
-    if game_state == STATE_PLAYING:
+def on_key_down(key):
+    global game_state, enemies, items, enemy_move_counter
+
+    if game_state == STATE_MENU:
+        if audio_on and (key == keys.W or key == keys.S):
+            sounds.navigation.play()
+    
+    elif game_state == STATE_PLAYING:
         dx, dy = 0, 0
         if key == keys.W:
             dy = -1
@@ -78,25 +84,33 @@ def on_key_down(key):
                     break
 
             if enemy_to_attack:
+                
                 enemy_to_attack.hp -= 1
                 if enemy_to_attack.hp <= 0:
                     new_item = Item(enemy_to_attack.x, enemy_to_attack.y, "potion")
                     items.append(new_item)
                     enemies.remove(enemy_to_attack)
                     print("Inimigo derrotado!")
-
                     if not enemies:
                         game_state = STATE_VICTORY
                         print("Você venceu!")
-                
             else:
-                player.move(dx, dy, level)
             
-            check_for_item_pickup() 
-            move_enemies()
+                player.move(dx, dy, level)
 
+      
+            enemy_move_counter += 1
+            if enemy_move_counter >= ENEMY_MOVE_RATE:
+                move_enemies()
+                enemy_move_counter = 0
+
+  
+            check_for_item_pickup()
+
+ 
             if player.hp <= 0:
                 game_state = STATE_GAME_OVER
+
 
 def on_mouse_down(pos):
     global game_state, level, player, enemies
