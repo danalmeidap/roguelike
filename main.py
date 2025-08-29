@@ -26,7 +26,8 @@ player = None
 enemies = []
 items = []
 
-is_music_playing = False
+is_menu_music_playing = False
+is_game_music_playing = False
 
 def draw():
     global game_state, level, player, enemies, items, audio_on, menu_selection
@@ -58,29 +59,36 @@ def draw():
         
 
 def update(dt):
-    global game_state, player, enemies
+    global game_state, player, enemies, audio_on, is_menu_music_playing, is_game_music_playing
 
     if game_state == STATE_MENU:
-        if not music.is_playing('menu.wav'):
-
-            music.play('menu.wav') 
+        if audio_on and not is_menu_music_playing:
+            music.play('menu.wav')
+            is_menu_music_playing = True
     
     elif game_state == STATE_PLAYING:
-        if not music.is_playing('tema_fase.wav'):
- 
+        if is_menu_music_playing:
+            music.stop()
+            is_menu_music_playing = False
+
+        if audio_on and not is_game_music_playing:
             music.play('tema_fase.wav')
+            is_game_music_playing = True
             
         for enemy in enemies:
             enemy.update_animation(dt)
             
-        player.update_animation(dt)
 
 
 def on_key_down(key):
     global game_state, enemies, items, audio_on, menu_selection, player, enemy_move_counter
 
+    # Lógica de reinício com a tecla R (funciona em qualquer estado)
+    if key == keys.R:
+        start_game()
+        return # Sai da função para evitar processar outros comandos
+
     if game_state == STATE_MENU:
-        # Lógica de navegação do menu (W/S)
         if key == keys.W:
             if audio_on:
                 sounds.navigation.play()
@@ -90,13 +98,11 @@ def on_key_down(key):
                 sounds.navigation.play()
             menu_selection += 1
         
-        # Garante que a seleção se mantenha dentro dos limites
         if menu_selection < 0:
             menu_selection = 2
         elif menu_selection > 2:
             menu_selection = 0
             
-        # Lógica de ação para a tecla Enter
         if key == keys.RETURN:
             if audio_on:
                 sounds.menu_confirm.play()
@@ -113,16 +119,24 @@ def on_key_down(key):
                 quit()
                 
     elif game_state == STATE_PLAYING:
-        # Lógica de movimento do jogador e de ataque
+        # Lógica de movimento e ataque
         dx, dy = 0, 0
-        if key == keys.W:
+        
+        # Mover com WASD ou Setas
+        if key == keys.W or key == keys.UP:
             dy = -1
-        elif key == keys.S:
+        elif key == keys.S or key == keys.DOWN:
             dy = 1
-        elif key == keys.A:
+        elif key == keys.A or key == keys.LEFT:
             dx = -1
-        elif key == keys.D:
+        elif key == keys.D or key == keys.RIGHT:
             dx = 1
+
+        # Pegar/Usar item com a tecla G
+        if key == keys.G:
+            check_for_item_pickup()
+            # Garante que o inimigo se move após pegar o item
+            move_enemies()
 
         if dx != 0 or dy != 0:
             target_x = player.x + dx
@@ -146,7 +160,7 @@ def on_key_down(key):
                         game_state = STATE_VICTORY
                         print("Você venceu!")
             else:
-                player.moving = True # Indica que o jogador se moveu
+                player.moving = True
                 player.move(dx, dy, level)
             
             # Movimento dos inimigos (acontece depois da ação do jogador)
@@ -154,8 +168,6 @@ def on_key_down(key):
             if enemy_move_counter >= ENEMY_MOVE_RATE:
                 move_enemies()
                 enemy_move_counter = 0
-            
-            check_for_item_pickup() 
 
             # Verificação de Game Over
             if player.hp <= 0:
@@ -186,24 +198,42 @@ def on_mouse_down(pos):
             sys.exit()
 
 
+import random
+# Certifique-se de que a classe Level e Player estão importadas
+
 def start_game():
-    global game_state, level, player, enemies
+    global game_state, level, player, enemies, items, enemy_move_counter, is_menu_music_playing, is_game_music_playing
+    
+   
     game_state = STATE_PLAYING
+    
+   
     level = Level(const.GRID_W, const.GRID_H)
     player = Player(const.GRID_W // 2, const.GRID_H // 2)
-    music.play('tema_fase.wav')
-
+    enemies = []
+    items = [] #r
+    
+   
     walkable_tiles = []
     for x in range(level.w):
         for y in range(level.h):
             if level.is_walkable(x, y):
                 walkable_tiles.append((x, y))
 
-    enemies = []
     for _ in range(5):
         pos = random.choice(walkable_tiles)
         new_enemy = Enemy(pos[0], pos[1])
         enemies.append(new_enemy)
+
+  
+    is_menu_music_playing = False
+    is_game_music_playing = False
+    
+ 
+    music.stop()
+
+
+    enemy_move_counter = 0
 
 def move_enemies():
     for enemy in enemies:
