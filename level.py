@@ -6,15 +6,16 @@ class Level:
     def __init__(self, w, h):
         self.w = w
         self.h = h
-        self.map = [[0 for _ in range(w)] for _ in range(h)]
+
+        # Mova esta linha para cá, antes dos loops!
+        self.tiles = [[0 for _ in range(w)] for _ in range(h)]
 
         for y in range(self.h):
             for x in range(self.w):
                 if x > 0 and y > 0 and x < self.w - 1 and y < self.h - 1:
                     if random.random() < 0.3:
-                        # Corrigido para self.tiles[y][x]
                         self.tiles[y][x] = 1
-
+                        
     def draw(self, screen):
         for y in range(self.h):
             for x in range(self.w):

@@ -26,6 +26,7 @@ enemies = []
 items = [] 
 
 
+is_music_playing = False
 
 def draw():
     screen.clear()
@@ -47,8 +48,10 @@ def draw():
         
 
 def update():
-    pass
-
+    global is_music_playing
+    if not is_music_playing:
+        music.play('menu.wav')
+        is_music_playing = True
 
 def on_key_down(key):
     global game_state, enemies, items
@@ -124,6 +127,7 @@ def start_game():
     game_state = STATE_PLAYING
     level = Level(const.GRID_W, const.GRID_H)
     player = Player(const.GRID_W // 2, const.GRID_H // 2)
+    music.play('tema_fase.wav')
 
     walkable_tiles = []
     for x in range(level.w):
