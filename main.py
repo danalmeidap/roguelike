@@ -13,37 +13,46 @@ STATE_MENU = 0
 STATE_PLAYING = 1
 STATE_GAME_OVER = 2
 STATE_VICTORY = 3
-ENEMY_MOVE_RATE = 3 
+ENEMY_MOVE_RATE = 3
 enemy_move_counter = 0
 
-game_state = STATE_MENU 
+game_state = STATE_MENU
 
 audio_on = True
-
+menu_selection = 0 
 
 level = None
 player = None
 enemies = []
-items = [] 
-
+items = []
 
 is_music_playing = False
 
 def draw():
+    global game_state, level, player, enemies, items, audio_on, menu_selection
+    
+  
     screen.clear()
     
+ 
     if game_state == STATE_MENU:
-        ui.draw_menu(screen, audio_on)
+        
+        ui.draw_menu(screen, audio_on, menu_selection)
+
     elif game_state == STATE_PLAYING:
+
         level.draw(screen)
         player.draw(screen)
         
+
         for enemy in enemies:
             enemy.draw(screen)
         
+
         for item in items:
             item.draw(screen)
-            
+        
+
         ui.draw_stats(screen, player)
         ui.draw_message(screen, "Use WASD to move.")
         
@@ -56,13 +65,46 @@ def update():
 
 
 def on_key_down(key):
-    global game_state, enemies, items, enemy_move_counter
+    global game_state, enemies, items, audio_on, menu_selection, player, enemy_move_counter
 
     if game_state == STATE_MENU:
-        if audio_on and (key == keys.W or key == keys.S):
-            sounds.navigation.play()
-    
+        # Navegação com o teclado e som
+        if key == keys.W:
+            if audio_on:
+                sounds.navigation.play()
+            menu_selection -= 1
+        elif key == keys.S:
+            if audio_on:
+                sounds.navigation.play()
+            menu_selection += 1
+        
+        # Garante que a seleção se mantenha dentro dos limites
+        if menu_selection < 0:
+            menu_selection = 2
+        elif menu_selection > 2:
+            menu_selection = 0
+            
+        # Ação ao pressionar Enter
+        if key == keys.RETURN:
+            if audio_on:
+                sounds.menu_confirm.play()
+            
+            if menu_selection == 0:
+                # Opção 'Start Game'
+                start_game()
+            elif menu_selection == 1:
+                # Opção 'Music/Sound'
+                audio_on = not audio_on
+                if audio_on:
+                    music.unpause()
+                else:
+                    music.pause()
+            elif menu_selection == 2:
+                # Opção 'Exit'
+                quit()
+                
     elif game_state == STATE_PLAYING:
+        # Lógica de movimento do jogador
         dx, dy = 0, 0
         if key == keys.W:
             dy = -1
@@ -74,6 +116,7 @@ def on_key_down(key):
             dx = 1
 
         if dx != 0 or dy != 0:
+            # Lógica de ataque ou movimento do jogador
             target_x = player.x + dx
             target_y = player.y + dy
 
@@ -84,30 +127,28 @@ def on_key_down(key):
                     break
 
             if enemy_to_attack:
-                
                 enemy_to_attack.hp -= 1
                 if enemy_to_attack.hp <= 0:
                     new_item = Item(enemy_to_attack.x, enemy_to_attack.y, "potion")
                     items.append(new_item)
                     enemies.remove(enemy_to_attack)
                     print("Inimigo derrotado!")
+
                     if not enemies:
                         game_state = STATE_VICTORY
                         print("Você venceu!")
             else:
-            
                 player.move(dx, dy, level)
-
-      
+            
+            # Lógica de movimento dos inimigos baseada no contador
             enemy_move_counter += 1
             if enemy_move_counter >= ENEMY_MOVE_RATE:
                 move_enemies()
                 enemy_move_counter = 0
+            
+            check_for_item_pickup() 
 
-  
-            check_for_item_pickup()
-
- 
+            # Verificação de Game Over
             if player.hp <= 0:
                 game_state = STATE_GAME_OVER
 
