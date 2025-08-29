@@ -83,13 +83,13 @@ import const
 
 class Enemy(Actor):
     def __init__(self, x, y, name="enemy"):
-        # Imagem inicial do inimigo (pose parada)
+        
         super().__init__(f'{name}_idle', topleft=(x * const.TILESIZE, y * const.TILESIZE))
         self.x_grid = x
         self.y_grid = y
-        self.hp = 3 # Exemplo de HP para inimigo
+        self.hp = 3 
         
-        # --- Variáveis para Animação ---
+        
         self.animation_frames = {
             'idle': [f'{name}_idle'],
             'walk': [f'{name}_walk_0', f'{name}_walk_1', f'{name}_walk_2', f'{name}_walk_3']
@@ -99,7 +99,7 @@ class Enemy(Actor):
         self.animation_speed = 0.2
         self.animation_timer = 0.0
         self.moving = False
-        # -----------------------------
+      
 
     @property
     def x(self):
@@ -119,7 +119,7 @@ class Enemy(Actor):
         self.y_grid = value
         self.top = self.y_grid * const.TILESIZE
 
-    # Lógica de movimento do inimigo (deve estar aqui)
+   
     def move(self, dx, dy, level):
         new_x = self.x_grid + dx
         new_y = self.y_grid + dy
@@ -127,11 +127,11 @@ class Enemy(Actor):
         if level.is_walkable(new_x, new_y):
             self.x = new_x
             self.y = new_y
-            self.moving = True # Indica que o inimigo se moveu
+            self.moving = True 
             return True
         return False
         
-    # --- Nova função para atualizar a animação ---
+   
     def update_animation(self, dt):
         self.animation_timer += dt
 
@@ -144,12 +144,22 @@ class Enemy(Actor):
             self.animation_timer = 0
             self.current_frame_index = (self.current_frame_index + 1) % len(self.animation_frames[self.current_animation])
             self.image = self.animation_frames[self.current_animation][self.current_frame_index]
-            self.moving = False # Reseta a flag de movimento
+            self.moving = False 
 
-class Item(Entity):
+class Item(Actor):
     def __init__(self, x, y, item_type):
-        super().__init__(x, y, "*")
         self.item_type = item_type
         
-    def draw(self, screen):
-        super().draw(screen, "green", const.TILESIZE)
+     
+        image_name = self.get_image_for_type(item_type)
+        
+        super().__init__(image_name, topleft=(x * const.TILESIZE, y * const.TILESIZE))
+        self.x_grid = x
+        self.y_grid = y
+
+    def get_image_for_type(self, item_type):
+        if item_type == 'potion':
+            return 'potion'
+
+        else:
+            return 'default_item_image' 

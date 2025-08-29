@@ -1,4 +1,4 @@
-# main.py
+# -*- coding: utf-8 -*-
 
 import sys 
 import const
@@ -29,34 +29,63 @@ items = []
 is_menu_music_playing = False
 is_game_music_playing = False
 
+
 def draw():
-    global game_state, level, player, enemies, items, audio_on, menu_selection
-    
-  
+    global game_state, player, enemies, items, audio_on, menu_selection
+
     screen.clear()
     
- 
     if game_state == STATE_MENU:
+        # Lógica de desenho do menu
+        screen.draw.text("Roguelike", center=(const.WIDTH / 2, const.HEIGHT / 2 - 50), fontsize=60, color="white")
         
-        ui.draw_menu(screen, audio_on, menu_selection)
+        menu_items = ["Começar", "Música: On" if audio_on else "Música: Off", "Sair"]
+        for i, item in enumerate(menu_items):
+            text_pos = (const.WIDTH / 2, const.HEIGHT / 2 + i * 40)
+            
+            # Se a opção estiver selecionada, desenha o retângulo de destaque
+            if i == menu_selection:
+                # O get_rect() deve ser chamado em um objeto criado a partir do texto
+                # Criamos um retângulo manualmente para evitar o erro
+                width, height = 300, 50
+                highlight_rect = Rect((text_pos[0] - width / 2, text_pos[1] - height / 2), (width, height))
+                screen.draw.filled_rect(highlight_rect, (255, 255, 0)) # Amarelo preenchido
+            
+            # Desenha o texto do menu
+            # Muda a cor para preto se estiver sobre o retângulo amarelo, para dar destaque
+            color = "black" if i == menu_selection else "white"
+            screen.draw.text(item, center=text_pos, fontsize=40, color=color)
 
     elif game_state == STATE_PLAYING:
-
+        # Desenha o mapa do jogo
         level.draw(screen)
-        player.draw() 
-        
 
+        # Desenha todos os itens no chão
+        for item in items:
+            item.draw()
+
+        # Desenha todos os inimigos
         for enemy in enemies:
             enemy.draw()
-        
 
-        for item in items:
-            item.draw(screen)
-        
+        # Desenha o jogador por último
+        player.draw()
 
-        ui.draw_stats(screen, player)
-        ui.draw_message(screen, "Use WASD to move.")
-        
+        # Desenha o HUD (HP do jogador)
+        screen.draw.text(f"HP: {player.hp}", topleft=(10, 10), fontsize=30, color="red")
+    
+    elif game_state == STATE_GAME_OVER:
+        # Lógica da tela de Game Over
+        screen.clear()
+        screen.draw.text("Game Over!", center=(const.WIDTH / 2, const.HEIGHT / 2), fontsize=60, color="red")
+        screen.draw.text("Pressione 'R' para reiniciar", center=(const.WIDTH / 2, const.HEIGHT / 2 + 50), fontsize=30, color="white")
+    
+    elif game_state == STATE_VICTORY:
+        # Lógica da tela de Vitória
+        screen.clear()
+        screen.draw.text("Você Venceu!", center=(const.WIDTH / 2, const.HEIGHT / 2), fontsize=60, color="green")
+        screen.draw.text("Pressione 'R' para jogar novamente", center=(const.WIDTH / 2, const.HEIGHT / 2 + 50), fontsize=30, color="white")
+
 
 def update(dt):
     global game_state, player, enemies, audio_on, is_menu_music_playing, is_game_music_playing
@@ -83,12 +112,12 @@ def update(dt):
 def on_key_down(key):
     global game_state, enemies, items, audio_on, menu_selection, player, enemy_move_counter
 
-    # Lógica de reinício com a tecla R (funciona em qualquer estado)
     if key == keys.R:
         start_game()
-        return # Sai da função para evitar processar outros comandos
+        return
 
     if game_state == STATE_MENU:
+        
         if key == keys.W:
             if audio_on:
                 sounds.navigation.play()
@@ -117,12 +146,10 @@ def on_key_down(key):
                     music.pause()
             elif menu_selection == 2:
                 quit()
-                
+
     elif game_state == STATE_PLAYING:
-        # Lógica de movimento e ataque
         dx, dy = 0, 0
         
-        # Mover com WASD ou Setas
         if key == keys.W or key == keys.UP:
             dy = -1
         elif key == keys.S or key == keys.DOWN:
@@ -132,10 +159,10 @@ def on_key_down(key):
         elif key == keys.D or key == keys.RIGHT:
             dx = 1
 
-        # Pegar/Usar item com a tecla G
+        # Lógica de coleta de item com a tecla G
         if key == keys.G:
             check_for_item_pickup()
-            # Garante que o inimigo se move após pegar o item
+            
             move_enemies()
 
         if dx != 0 or dy != 0:
@@ -151,7 +178,7 @@ def on_key_down(key):
             if enemy_to_attack:
                 enemy_to_attack.hp -= 1
                 if enemy_to_attack.hp <= 0:
-                    new_item = Item(enemy_to_attack.x, enemy_to_attack.y, "potion")
+                    new_item = Item(enemy_to_attack.x, enemy_to_attack.y, 'potion')
                     items.append(new_item)
                     enemies.remove(enemy_to_attack)
                     print("Inimigo derrotado!")
@@ -163,13 +190,12 @@ def on_key_down(key):
                 player.moving = True
                 player.move(dx, dy, level)
             
-            # Movimento dos inimigos (acontece depois da ação do jogador)
             enemy_move_counter += 1
             if enemy_move_counter >= ENEMY_MOVE_RATE:
                 move_enemies()
                 enemy_move_counter = 0
 
-            # Verificação de Game Over
+        
             if player.hp <= 0:
                 game_state = STATE_GAME_OVER
 
@@ -198,8 +224,8 @@ def on_mouse_down(pos):
             sys.exit()
 
 
-import random
-# Certifique-se de que a classe Level e Player estão importadas
+
+
 
 def start_game():
     global game_state, level, player, enemies, items, enemy_move_counter, is_menu_music_playing, is_game_music_playing
@@ -258,9 +284,10 @@ def move_enemies():
 
 def check_for_item_pickup():
     global player, items
+    
     item_to_remove = None
     for item in items:
-        if player.x == item.x and player.y == item.y:
+        if player.x == item.x_grid and player.y == item.y_grid:
             item_to_remove = item
             if item.item_type == "potion":
                 player.hp += 2
