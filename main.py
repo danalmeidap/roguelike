@@ -42,7 +42,7 @@ def draw():
     elif game_state == STATE_PLAYING:
 
         level.draw(screen)
-        player.draw(screen)
+        player.draw() 
         
 
         for enemy in enemies:
@@ -57,18 +57,27 @@ def draw():
         ui.draw_message(screen, "Use WASD to move.")
         
 
-def update():
-    global is_music_playing
-    if not is_music_playing:
-        music.play('menu.wav')
-        is_music_playing = True
+def update(dt):
+    global game_state, player
+
+    if game_state == STATE_MENU:
+      
+        if not music.is_playing('menu.wav'):
+            music.play('menu.wav')
+    
+    elif game_state == STATE_PLAYING:
+    
+        if not music.is_playing('tema_fase.wav'):
+            music.play('tema_fase.wav')
+            
+        player.update_animation(dt)
 
 
 def on_key_down(key):
     global game_state, enemies, items, audio_on, menu_selection, player, enemy_move_counter
 
     if game_state == STATE_MENU:
-        # Navegação com o teclado e som
+        # Lógica de navegação do menu (W/S)
         if key == keys.W:
             if audio_on:
                 sounds.navigation.play()
@@ -84,27 +93,24 @@ def on_key_down(key):
         elif menu_selection > 2:
             menu_selection = 0
             
-        # Ação ao pressionar Enter
+        # Lógica de ação para a tecla Enter
         if key == keys.RETURN:
             if audio_on:
                 sounds.menu_confirm.play()
             
             if menu_selection == 0:
-                # Opção 'Start Game'
                 start_game()
             elif menu_selection == 1:
-                # Opção 'Music/Sound'
                 audio_on = not audio_on
                 if audio_on:
                     music.unpause()
                 else:
                     music.pause()
             elif menu_selection == 2:
-                # Opção 'Exit'
                 quit()
                 
     elif game_state == STATE_PLAYING:
-        # Lógica de movimento do jogador
+        # Lógica de movimento do jogador e de ataque
         dx, dy = 0, 0
         if key == keys.W:
             dy = -1
@@ -116,7 +122,6 @@ def on_key_down(key):
             dx = 1
 
         if dx != 0 or dy != 0:
-            # Lógica de ataque ou movimento do jogador
             target_x = player.x + dx
             target_y = player.y + dy
 
@@ -138,9 +143,10 @@ def on_key_down(key):
                         game_state = STATE_VICTORY
                         print("Você venceu!")
             else:
+                player.moving = True # Indica que o jogador se moveu
                 player.move(dx, dy, level)
             
-            # Lógica de movimento dos inimigos baseada no contador
+            # Movimento dos inimigos (acontece depois da ação do jogador)
             enemy_move_counter += 1
             if enemy_move_counter >= ENEMY_MOVE_RATE:
                 move_enemies()

@@ -1,4 +1,5 @@
 import const
+from pgzero.actor import Actor
 
 class Entity:
     def __init__(self, x, y, char):
@@ -14,21 +15,68 @@ class Entity:
             fontsize=tilesize
         )
 
-class Player(Entity):
-    def __init__(self, x, y, char="@"):
-        super().__init__(x, y, char)
-        self.hp = 10 
+class Player(Actor):
+    def __init__(self, x, y):
+        super().__init__('player_idle', topleft=(x * const.TILESIZE, y * const.TILESIZE))
+        self.x_grid = x
+        self.y_grid = y
+        self.hp = 10
 
-    def draw(self, screen):
-        super().draw(screen, "yellow", const.TILESIZE)
+        self.animation_frames = {
+            'idle': ['player_idle'],
+            'walk': ['player_walk_0', 'player_walk_1', 'player_walk_2', 'player_walk_3']
+        }
+        self.current_animation = 'idle'
+        self.current_frame_index = 0
+        self.animation_speed = 0.15
+        self.animation_timer = 0.0
+        self.moving = False
+
+    @property
+    def x(self):
+        return self.x_grid
+
+    @x.setter
+    def x(self, value):
+        self.x_grid = value
+        self.left = self.x_grid * const.TILESIZE
+
+    @property
+    def y(self):
+        return self.y_grid
+
+    @y.setter
+    def y(self, value):
+        self.y_grid = value
+        self.top = self.y_grid * const.TILESIZE
 
     def move(self, dx, dy, level):
-        new_x = self.x + dx
-        new_y = self.y + dy
+        new_x = self.x_grid + dx
+        new_y = self.y_grid + dy
 
         if level.is_walkable(new_x, new_y):
             self.x = new_x
             self.y = new_y
+            self.moving = True
+            return True
+        return False
+    
+    def update_animation(self, dt):
+        self.animation_timer += dt
+
+        if self.moving:
+            self.current_animation = 'walk'
+        else:
+            self.current_animation = 'idle'
+        
+        if self.animation_timer >= self.animation_speed:
+            self.animation_timer = 0
+        
+            self.current_frame_index = (self.current_frame_index + 1) % len(self.animation_frames[self.current_animation])
+            self.image = self.animation_frames[self.current_animation][self.current_frame_index]
+            
+            if self.current_animation == 'walk' and self.current_frame_index == len(self.animation_frames['walk']) - 1:
+                self.moving = False
 
 class Enemy(Entity):
     def __init__(self, x, y):
